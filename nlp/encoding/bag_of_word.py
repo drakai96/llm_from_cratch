@@ -1,9 +1,8 @@
-from typing import Tuple, Dict, List
+import json
+from typing import Dict, List, Tuple
 
 import pandas as pd
-
 from one_hot import OneHot
-import json
 
 
 class BagOfWord(OneHot):
@@ -43,7 +42,7 @@ class BagOfWord(OneHot):
         self, docs: List[str,], less_memory: True, is_pyvi=True
     ) -> Tuple | Dict | pd.DataFrame:
         """
-
+        Embedding the document
         Args:
             docs:
             less_memory:

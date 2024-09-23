@@ -1,10 +1,9 @@
 import json
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
-
+import pandas as pd
 from base import BaseEncoder
 from pydantic import Field
-import pandas as pd
 
 
 class OneHot(BaseEncoder):
@@ -21,7 +20,22 @@ class OneHot(BaseEncoder):
         use_cached=False,
         unknown_token="#sep",
     ) -> Tuple[Dict[str, int], Dict[int, str]]:
+        """
 
+        Args:
+            is_pyvi: bool, default = True
+                Mean True if used pyvi library to tokenizer
+            vocab_cached_path: str default = nlp/cached/vocab.json
+                Mean path to save cached vocab
+            use_cached: bool, default = False
+                Mean True if need to used cached to load vocab or save vocab
+            unknown_token: str = #sep
+                Mean token not in vocab change to #sep
+
+        Returns:Dict[str, int], Dict[int, str]
+            vocab and invert vocab
+
+        """
         if use_cached:
             with open(vocab_cached_path, "w") as fp:
                 vocab_map = json.load(fp)
@@ -72,6 +86,14 @@ class OneHot(BaseEncoder):
     def transform(
         self, docs: List[str,], less_memory: True, is_pyvi=True
     ) -> Tuple | Dict | pd.DataFrame:
+        """
+        Embedding the document
+            Args:
+                docs:
+                less_memory:
+            Returns:
+                Tuple of vector embedding or DataFrame embedding
+        """
         embedding = ()
         for doc in docs:
             embedding += (self.__transform_sentence(doc, is_pyvi=is_pyvi),)
@@ -80,6 +102,14 @@ class OneHot(BaseEncoder):
         return embedding
 
     def vector_to_sentence(self, vector: List[int,]) -> str:
+        """
+        Convert less memory vector to matrix embedding
+        Args:
+            vector: List of idx in vocab
+
+        Returns:
+            convert idx to sentence
+        """
         _, inverse = self.vocab, self.inverse_vocab
         list_tokens = []
         for vec in vector:

@@ -1,9 +1,10 @@
-from typing import List, Tuple
 import json
-from pandas.core.api import DataFrame as DataFrame
-from base import BaseEncoder
 import math
 from collections import Counter
+from typing import List, Tuple
+
+from base import BaseEncoder
+from pandas.core.api import DataFrame as DataFrame
 
 
 class TfIdf(BaseEncoder):
@@ -74,11 +75,29 @@ class TfIdf(BaseEncoder):
         return self.vocab, self.idf
 
     def transform(self, docs: List[str], less_memory: True) -> Tuple | DataFrame:
+        """
+
+         Args:
+             docs:
+             less_memory:
+         Returns:
+             Tuple of vector embedding or DataFrame embedding
+         """
         for doc in docs:
             self.__transform_sentence(doc)
         return ()
 
     def __transform_sentence(self, sentence: str, is_pyvi=True):
+        """
+
+        Args:
+            sentence: Sentence need to embedding
+            is_pyvi: bool = True
+                Mean True if user pyvi library to tokenizer
+
+        Returns:Tuple
+            Vector tokenizer
+        """
         tokens_sentence = self.tokenizer_documents([sentence])
         token_count_dict = Counter(tokens_sentence)
         len_tokens_sentences = len(tokens_sentence)

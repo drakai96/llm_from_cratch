@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from pyvi import ViTokenizer
-from pydantic import Field
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
+
 import pandas as pd
+from pydantic import Field
+from pyvi import ViTokenizer
 
 
 class BaseEncoder(ABC):
