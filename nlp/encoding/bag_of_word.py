@@ -22,6 +22,7 @@ class BagOfWord(OneHot):
                     "inverse_vocab"
                 )
             return self.vocab, self.inverse_vocab
+
         token_documents = self.tokenizer_documents(is_pyvi=is_pyvi)
         self.vocab = {unknown_token: 0}
         index = 1
@@ -31,6 +32,7 @@ class BagOfWord(OneHot):
                     self.vocab[token] = index
                     index += 1
         self.inverse_vocab = {value: key for key, value in self.vocab.items()}
+
         if not use_cached and vocab_cached_path:
             cache = {"vocab": self.vocab, "inverse_vocab": self.inverse_vocab}
             with open(vocab_cached_path, "w") as fp:
@@ -60,6 +62,7 @@ class BagOfWord(OneHot):
         vocab, _ = self.vocab, self.inverse_vocab
         tokens = self.tokenizer_documents(documents=[sentence], is_pyvi=is_pyvi)
         embedd = dict()
+
         for token in tokens[0]:
             index_token = vocab.get(token)
             if not index_token:
@@ -72,9 +75,11 @@ class BagOfWord(OneHot):
 
     def __format_to_matrix(self, ids: Tuple) -> pd.DataFrame:
         data_encoder = pd.DataFrame(columns=[*self.vocab])
+
         for num, id_ in enumerate(ids):
             data_encoder.loc[num] = 0
             data_encoder.iloc[num, list(id_.keys())] = list(id_.values())
+
         return data_encoder
 
 

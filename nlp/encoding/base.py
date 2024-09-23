@@ -32,6 +32,7 @@ class BaseEncoder(ABC):
         """
         if not documents:
             documents = self.documents
+
         if is_pyvi:
             token_docs = []
             for doc in documents:
@@ -42,6 +43,7 @@ class BaseEncoder(ABC):
                 token_docs.append(_token_sentence)
         else:
             token_docs = [doc.split() for doc in documents]
+
         return token_docs
 
     @abstractmethod

@@ -43,6 +43,7 @@ class OneHot(BaseEncoder):
                     "inverse_vocab"
                 )
             return self.vocab, self.inverse_vocab
+
         token_documents = self.tokenizer_documents(is_pyvi=is_pyvi)
         self.vocab = {unknown_token: 0}
         index = 1
@@ -52,11 +53,9 @@ class OneHot(BaseEncoder):
                     self.vocab[token] = index
                     index += 1
         self.inverse_vocab = {value: key for key, value in self.vocab.items()}
+
         if not use_cached and vocab_cached_path:
             cache = {"vocab": self.vocab, "inverse_vocab": self.inverse_vocab}
-            import os
-
-            print("root: ", os.getcwd())
             with open(vocab_cached_path, "w") as fp:
                 json.dump(cache, fp=fp, indent=4, ensure_ascii=False)
         return self.vocab, self.inverse_vocab

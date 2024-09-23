@@ -44,12 +44,16 @@ class CleanDocument:
 
         if white_space:
             long_text = re.sub(r"\s{2,}", " ", long_text)
+
         if lower:
             long_text = long_text.lower()
+
         if upper:
             long_text = long_text.upper()
+
         if special_character:
             long_text = re.sub(special_character, "", long_text)
+
         return long_text
 
     def clean_corpus(self, documents: documents) -> documents:

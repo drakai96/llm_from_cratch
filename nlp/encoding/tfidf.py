@@ -49,6 +49,7 @@ class TfIdf(BaseEncoder):
                     "idf_cached"
                 )
             return self.vocab, self.inverse_vocab
+
         token_documents = self.tokenizer_documents(is_pyvi=is_pyvi)
         self.vocab = {unknown_token: 0}
         index = 1
@@ -58,6 +59,7 @@ class TfIdf(BaseEncoder):
                     self.vocab[token] = index
                     index += 1
         self.idf = ()
+
         if smooth:
             d = len(self.documents) + 1
             for word in self.vocab.keys():
@@ -68,6 +70,7 @@ class TfIdf(BaseEncoder):
                 self.idf += (math.log(d + 1 / (count + 1)),)
         else:
             raise "We need smooth"
+
         if not use_cached and vocab_cached_path:
             cache = {"vocab": self.vocab, "idf_cached": self.idf}
             with open(vocab_cached_path, "w") as fp:
@@ -102,6 +105,7 @@ class TfIdf(BaseEncoder):
         token_count_dict = Counter(tokens_sentence)
         len_tokens_sentences = len(tokens_sentence)
         tf_idf = tuple()
+
         for token in tokens_sentence:
             idx = self.vocab.get(token)
             value = token_count_dict.get(token) / len_tokens_sentences
