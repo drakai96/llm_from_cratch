@@ -1,10 +1,14 @@
+"""
+This module contains class for embedding documents.
+It includes functionalities for keyword extraction and document submission.
+"""
 import json
 import math
 from collections import Counter
 from typing import List, Tuple
 
-from base import BaseEncoder
-from pandas.core.api import DataFrame as DataFrame
+from nlp.encoding.base import BaseEncoder
+from pandas.core.api import DataFrame
 
 
 class TfIdf(BaseEncoder):
@@ -19,6 +23,9 @@ class TfIdf(BaseEncoder):
 
         """
         super().__init__(documents, is_sklearn)
+        self.vocab = {}
+        self.inverse_vocab = {}
+        self.idf = {}
 
     def fit(
         self,
@@ -35,7 +42,7 @@ class TfIdf(BaseEncoder):
             vocab_cached_path: str default = nlp/cached/vocab.json
                 Mean path to save cached vocab
             use_cached: bool, default = False
-                Mean True if need to used cached to load vocab or save vocab
+                Mean True if used cached to load vocab or save vocab
             unknown_token: str = #sep
                 Mean token not in vocab change to #sep
             smooth
@@ -114,32 +121,3 @@ class TfIdf(BaseEncoder):
 
     def vector_to_sentence(self, vector: List[int,]) -> str:
         raise "Module not implement"
-
-
-if __name__ == "__main__":
-    from nlp.preprocessing import CleanDocument
-
-    docs = [
-        "Trong thông báo gửi đi vào ngày 21/9, Bộ Tổng tham mưu Quân đội \
-    nhân dân Việt Nam cho biết sẽ dừng huấn luyện diễu binh, diễu hành trong lễ kỷ niệm 80 năm \
-    thành lập quân đội.",
-        "Tôi muốn làm những người theo chủ nghĩa lý tưởng thất vọng, vì thực \
-    tế là các bên ở châu Âu đều đang làm như vậy. Sự khác biệt giữa chúng tôi và những nước khác \
-    nói chung là chúng tôi nói một cách trung thực và cởi mở về vấn đề này. Toàn bộ châu Âu đều làm \
-    ăn với người Nga, nhưng một số nước phủ nhận điều này, chúng tôi không cần điều đó, ông Szijjarto \
-    phát biểu tại Budapest vào hôm 20/9.",
-    ]
-    clean = CleanDocument()
-    docs = clean.clean_corpus(docs)
-    tfidf = TfIdf(documents=docs)
-    vocab, idf = tfidf.fit(
-        vocab_cached_path="/Users/nguyenvannham/PycharmProjects/pycharm_from_cratch/nlp/cached/vocab_tfidf.json"
-    )
-    print("vocab: ", vocab)
-    print("idf: ", idf)
-    print(
-        tfidf.transform(
-            ["Tôi muốn làm những người theo chủ nghĩa lý tưởng thất vọng"],
-            less_memory=True,
-        )
-    )

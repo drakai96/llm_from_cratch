@@ -1,3 +1,4 @@
+"""This module use to clean longtext before embedding"""
 import re
 from typing import List
 
@@ -5,6 +6,9 @@ from pydantic import Field
 
 
 class CleanDocument:
+    """
+    Clean text before embedding
+    """
     documents: List[str] = Field(description="List of doc string")
     text: str = Field(description="Text need to clean")
     __AtriWhiteSpace__: bool = True
@@ -21,10 +25,10 @@ class CleanDocument:
         white_space: __AtriWhiteSpace__,
         upper: __AtriUpper__,
         lower: __AtriLower__,
-        special_character: text = r"[\#\@\$\%\,\^\(\)\.]+",
+        special_character: text = r"[#@$%,^().]+",
     ) -> str:
         """
-
+        Clean the long text before embedding
         Args:
             long_text: String
                 Mean input text - sentence
@@ -34,13 +38,13 @@ class CleanDocument:
                 Mean True if upper all word in a sentence
             lower: Boolean
                 Mean True if lower all word in a sentence
-            special_character: String, default = r"[\#\@\$\%\,\^\(\)\.]+"
+            special_character: String, default = r"[#@$%,^().]+"
                 Mean clear all character in special_character,
         Returns:
             The cleaning sentence
         """
         if not isinstance(long_text, str) or not long_text:
-            raise "Invalid input text. Input must be str"
+            raise ValueError("Invalid input text. Input must be str")
 
         if white_space:
             long_text = re.sub(r"\s{2,}", " ", long_text)
