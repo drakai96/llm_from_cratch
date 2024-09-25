@@ -82,7 +82,6 @@ class BaseEncoder(ABC):
             (word-to-index mapping) and its inverse (index-to-word mapping).
 
         """
-        pass
 
     @abstractmethod
     def transform(self, docs: List[str,], less_memory: True) -> Tuple | pd.DataFrame:
@@ -94,7 +93,6 @@ class BaseEncoder(ABC):
         Returns:
             Tuple of vector embedding or DataFrame embedding
         """
-        pass
 
     def __transform_sentence(self, sentence: str, is_pyvi=True):
         """
@@ -107,7 +105,6 @@ class BaseEncoder(ABC):
         Returns:Tuple
             Vector tokenizer
         """
-        raise "Not implement"
 
     @abstractmethod
     def vector_to_sentence(self, vector: List[int,]) -> str:
