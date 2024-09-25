@@ -1,16 +1,19 @@
-# This is a sample Python script.
+# Reference absl.flags in code with the complete name (verbose).
+import absl.flags
+from doctor.who import jodie
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+_FOO = absl.flags.DEFINE_string(...)
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f"Hi, {name}")  # Press ⌘F8 to toggle the breakpoint.
+list_character = ["a", "b", "c"]
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == "__main__":
-    print_hi("PyCharm")
+def add_value_into_list(list_character: list, value: str = "add_value") -> list:
+    """
+    Append value to list
+    :param list_character: list character need to append value
+    :param value: value append
+    :return: New list after append value
+    """
+    return
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+print("list_character: ", list_character)
