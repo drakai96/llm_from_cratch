@@ -6,6 +6,9 @@ from nlp.encoding.one_hot import OneHot
 
 
 class BagOfWord(OneHot):
+    """
+    Implements a Bag-of-Words model for text encoding, extending from the OneHot class.
+    """
 
     def fit(
         self,
@@ -14,7 +17,23 @@ class BagOfWord(OneHot):
         use_cached=False,
         unknown_token="#sep",
     ) -> Tuple[Dict[str, int], Dict[int, str]]:
+        """
+        Fits the vocabulary by tokenizing the input documents. Optionally, caches
+        the vocabulary for future use.
 
+        Args:
+            is_pyvi (bool, optional): If True, uses the PyVi library for tokenization.
+                Defaults to True.
+            vocab_cached_path (str, optional): Path to save or load the cached vocabulary.
+                Defaults to "nlp/cached/vocab_bag_of_word.json".
+            use_cached (bool, optional): If True, loads the vocabulary from the cached file.
+                If False, creates a new vocabulary from the input documents. Defaults to False.
+            unknown_token (str, optional): Token used for unknown words. Defaults to "#sep".
+
+        Returns:
+            Tuple[Dict[str, int], Dict[int, str]]: A tuple containing the vocabulary
+            (word-to-index mapping) and inverse vocabulary (index-to-word mapping).
+        """
         if use_cached:
             with open(vocab_cached_path, "w", encoding="utf-8") as fp:
                 vocab_map = json.load(fp)
@@ -46,7 +65,7 @@ class BagOfWord(OneHot):
         self, docs: List[str,], less_memory: True, is_pyvi=True
     ) -> Tuple | Dict | pd.DataFrame:
         """
-        Embedding the document
+        Transform documents to embedding vectors
         Args:
             docs:
             less_memory:
@@ -62,6 +81,18 @@ class BagOfWord(OneHot):
         return embedding
 
     def __transform_sentence(self, sentence: str, is_pyvi=True) -> Dict:
+        """
+       Transforms a single sentence into its Bag-of-Words vector representation.
+
+       Args:
+           sentence (str): The sentence to be transformed.
+           is_pyvi (bool, optional): If True, uses PyVi for tokenization. Defaults to True.
+
+       Returns:
+           Dict: A dictionary where keys are token indices and values are token counts
+           in the sentence.
+       """
+
         vocab, _ = self.vocab, self.inverse_vocab
         tokens = self.tokenizer_documents(documents=[sentence], is_pyvi=is_pyvi)
         embedd = {}
@@ -79,6 +110,17 @@ class BagOfWord(OneHot):
         return embedd
 
     def __format_to_matrix(self, ids: Tuple) -> pd.DataFrame:
+        """
+        Converts the sparse vector representation into a dense matrix format.
+
+        Args:
+            ids (Tuple): Tuple containing the sparse vector embeddings for each document.
+
+        Returns:
+            pd.DataFrame: A DataFrame where each row represents a document, and columns
+            represent token counts in the document.
+        """
+
         data_encoder = pd.DataFrame(columns=[*self.vocab])
 
         for num, id_ in enumerate(ids):
