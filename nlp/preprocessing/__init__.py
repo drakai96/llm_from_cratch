@@ -1,1 +1,1 @@
-from nlp.preprocessing.text_processing import CleanDocument
+from . import text_processing

@@ -1,9 +1,12 @@
 """
 Base class for encoding
 """
-from abc import ABC, abstractmethod
-from typing import Dict, List, Tuple
 
+import os
+from abc import ABC, abstractmethod
+from typing import Dict, List, Tuple, Any, Literal
+import json
+import pickle
 import pandas as pd
 from pydantic import Field
 from pyvi import ViTokenizer
@@ -11,26 +14,32 @@ from pyvi import ViTokenizer
 
 class BaseEncoder(ABC):
     """
-       Abstract base class for text encoders, which can tokenize and transform
-       text documents into vector embeddings.
+    Abstract base class for text encoders, which can tokenize and transform
+    text documents into vector embeddings.
 
-       Attributes:
-           __AtriPyvi__ (bool): Indicates whether the PyVi library is used
-               for tokenizing sentences.
+    Attributes:
+        __AtriPyvi__ (bool): Indicates whether the PyVi library is used
+            for tokenizing sentences.
     """
+
     __AtriPyvi__: bool = Field(
         default=True,
         description="Check is use pyvi library\
      to token sentences",
     )
 
-    def __init__(self, documents: List[str,], is_sklearn: False) -> None:
-        self.documents = documents
+    def __init__(self, is_sklearn: False) -> None:
+        """
+        Init class
+        Args:
+            is_sklearn:
+        """
         self.is_sklearn = is_sklearn
 
-    def tokenizer_documents(self, documents: List[str] = None, is_pyvi: bool = True):
+    @staticmethod
+    def tokenize_documents(documents: List[str], is_pyvi: bool = True):
         """
-        Tokenizes the input documents using PyVi or a simple split method.
+        Tokenize the input documents using PyVi or a simple split method.
         Args:
             documents: Document of sentence default = False
             is_pyvi: bool, default = True
@@ -41,8 +50,6 @@ class BaseEncoder(ABC):
             List token documents
 
         """
-        if not documents:
-            documents = self.documents
 
         if is_pyvi:
             token_docs = []
@@ -60,20 +67,16 @@ class BaseEncoder(ABC):
     @abstractmethod
     def fit(
         self,
+        documents: List[str,],
         is_pyvi=True,
-        vocab_cached_path: str = "nlp/cached/vocab.json",
-        use_cached=False,
         unknown_token="#sep",
     ) -> Tuple[Dict[str, int], Dict[int, str]]:
         """
         Fit documents to vocab corpus and invert vocab corpus
         Args:
+            documents: List of sentence need to embedding
             is_pyvi: bool, default = True
                 Mean True if used pyvi library to tokenizer
-            vocab_cached_path: str default = nlp/cached/vocab.json
-                Mean path to save cached vocab
-            use_cached: bool, default = False
-                Mean True if used cached to load vocab or save vocab
             unknown_token: str = #sep
                 Mean token not in vocab change to #sep
 
@@ -116,3 +119,58 @@ class BaseEncoder(ABC):
         Returns:
             convert idx to sentence
         """
+
+    @staticmethod
+    def save_embedding(path: str, vocab_embedding: Any) -> None:
+        """
+
+        Args:
+            path: path to save embedding model ('.json' or '.pickle')
+            vocab_embedding: the embedding model
+        Returns:
+
+        """
+        # Save model embedding as json file
+        if path.endswith(".json"):
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(f, vocab_embedding)
+
+        # Save model embedding as pickle file
+        if path.endswith(".json"):
+            with open(path, "w+", encoding="utf-8") as f:
+                pickle.dump(f, vocab_embedding)
+
+    @staticmethod
+    def load_embedding(path: str, path_type: Literal["json", "pickle"] = None):
+        """
+
+        Args:
+            path: The path of embedding model
+            path_type: The format of file (json or pickle)
+
+        Returns:
+            Any: The loaded embedding data.
+        """
+        if os.path.exists(path):
+            raise FileNotFoundError(f"The path file '{path}' do not exits.")
+
+        # Checking format of path
+        if not path_type:
+            if path.endswith(".pickle"):
+                path_type = "pickle"
+            elif path.endswith(".json"):
+                path_type = ".json"
+            else:
+                raise ValueError("Please specify path file '.json' or 'pickle' ")
+
+        # Load pickle embedding model
+        if path_type == ".pickle":
+            with open(path, "rb", encoding="utf-8") as f:
+                embedding_model = pickle.load(f)
+                return embedding_model
+
+        # Load json embedding model
+        if path_type == ".json":
+            with open(path, "r", encoding="utf-8") as f:
+                embedding_model = json.load(f)
+                return embedding_model

@@ -1,9 +1,11 @@
 """
 Module contain Onehot embedding class
 """
+
 import json
 from typing import Dict, List, Tuple
-
+import os
+from collections import defaultdict
 import pandas as pd
 from base import BaseEncoder
 from pydantic import Field
@@ -17,25 +19,20 @@ class OneHot(BaseEncoder):
     )
 
     def __init__(self, documents: List[str,], is_sklearn: False) -> None:
-        super().__init__(documents,is_sklearn)
+        super().__init__(documents, is_sklearn)
         self.vocab = {}
         self.inverse_vocab = {}
 
     def fit(
         self,
-        is_pyvi=True,
-        vocab_cached_path: str = "nlp/cached/vocab_onehot.json",
-        use_cached=False,
+        documents: List[str,],
+        is_pyvi=True,  # Check whether to use the Pyvi library to tokenize sentences
         unknown_token="#sep",
     ) -> Tuple[Dict[str, int], Dict[int, str]]:
         """
         Args:
             is_pyvi: bool, default = True
                 Mean True if used pyvi library to tokenizer
-            vocab_cached_path: str default = nlp/cached/vocab.json
-                Mean path to save cached vocab
-            use_cached: bool, default = False
-                Mean True if used cached to load vocab or save vocab
             unknown_token: str = #sep
                 Mean token not in vocab change to #sep
 
@@ -43,36 +40,24 @@ class OneHot(BaseEncoder):
             vocab and invert vocab
 
         """
-        if use_cached:
-            with open(vocab_cached_path, "w", encoding="utf-8") as fp:
-                vocab_map = json.load(fp)
-                self.vocab, self.inverse_vocab = vocab_map.get("vocab"), vocab_map.get(
-                    "inverse_vocab"
-                )
-                fp.close()
-            return self.vocab, self.inverse_vocab
 
-        token_documents = self.tokenizer_documents(is_pyvi=is_pyvi)
-        self.vocab = {unknown_token: 0}
-        index = 1
+        # Tokenize sentence to word
+        token_documents = self.tokenize_documents(documents, is_pyvi=is_pyvi)
+
+        # Create vocab dictionary
+        self.vocab = defaultdict()
         for token_doc in token_documents:
-            for token in token_doc:
-                if token not in self.vocab:
-                    self.vocab[token] = index
-                    index += 1
+            for num, token in enumerate(token_doc):
+                self.vocab[token] = num
+        self.vocab = dict(self.vocab)
 
+        # Inverse vocab to inverse_vocab dictionary, which transform id to vocab
         self.inverse_vocab = {value: key for key, value in self.vocab.items()}
-
-        if not use_cached and vocab_cached_path:
-            cache = {"vocab": self.vocab, "inverse_vocab": self.inverse_vocab}
-            with open(vocab_cached_path, "w", encoding="utf-8") as fp:
-                json.dump(cache, fp=fp, indent=4, ensure_ascii=False)
 
         return self.vocab, self.inverse_vocab
 
     def __transform_sentence(self, sentence: str, is_pyvi=True) -> Tuple:
         """
-
         Args:
             sentence: Sentence need to embedding
             is_pyvi: bool = True
@@ -83,7 +68,7 @@ class OneHot(BaseEncoder):
         """
         vocab, _ = self.vocab, self.inverse_vocab
 
-        tokens = self.tokenizer_documents(documents=[sentence], is_pyvi=is_pyvi)
+        tokens = self.tokenize_documents(documents=[sentence], is_pyvi=is_pyvi)
 
         embedd = ()
         for token in tokens[0]:
@@ -101,14 +86,17 @@ class OneHot(BaseEncoder):
         """
         Embedding the document
             Args:
+                is_pyvi: Check whether to use the Pyvi library to tokenize sentences
                 docs:
                 less_memory:
             Returns:
                 Tuple of vector embedding or DataFrame embedding
         """
         embedding = ()
+        # Tokenize sentences
         for doc in docs:
             embedding += (self.__transform_sentence(doc, is_pyvi=is_pyvi),)
+        # Transform token to embedding matrix
         if not less_memory:
             embedding = self.__format_to_matrix(embedding)
 
@@ -145,4 +133,3 @@ class OneHot(BaseEncoder):
             print(set(id_))
 
         return data_encoder
-

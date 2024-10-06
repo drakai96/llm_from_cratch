@@ -1,9 +1,8 @@
-import json
 from typing import Dict, List, Tuple
 
 import pandas as pd
 from nlp.encoding.one_hot import OneHot
-
+from collections import defaultdict
 
 class BagOfWord(OneHot):
     """
@@ -12,9 +11,8 @@ class BagOfWord(OneHot):
 
     def fit(
         self,
+        documents: List[str,],
         is_pyvi=True,
-        vocab_cached_path: str = "nlp/cached/vocab_bag_of_word.json",
-        use_cached=False,
         unknown_token="#sep",
     ) -> Tuple[Dict[str, int], Dict[int, str]]:
         """
@@ -22,42 +20,26 @@ class BagOfWord(OneHot):
         the vocabulary for future use.
 
         Args:
+            documents: List of sentence
             is_pyvi (bool, optional): If True, uses the PyVi library for tokenization.
                 Defaults to True.
-            vocab_cached_path (str, optional): Path to save or load the cached vocabulary.
-                Defaults to "nlp/cached/vocab_bag_of_word.json".
-            use_cached (bool, optional): If True, loads the vocabulary from the cached file.
-                If False, creates a new vocabulary from the input documents. Defaults to False.
             unknown_token (str, optional): Token used for unknown words. Defaults to "#sep".
 
         Returns:
             Tuple[Dict[str, int], Dict[int, str]]: A tuple containing the vocabulary
             (word-to-index mapping) and inverse vocabulary (index-to-word mapping).
         """
-        if use_cached:
-            with open(vocab_cached_path, "w", encoding="utf-8") as fp:
-                vocab_map = json.load(fp)
-                self.vocab, self.inverse_vocab = vocab_map.get("vocab"), vocab_map.get(
-                    "inverse_vocab"
-                )
-            return self.vocab, self.inverse_vocab
+        # Paser list of sentence to matrix of token.
+        # Each sentence parse to a vector
+        token_documents = self.tokenize_documents(documents, is_pyvi=is_pyvi)
 
-        token_documents = self.tokenizer_documents(is_pyvi=is_pyvi)
-
-        self.vocab = {unknown_token: 0}
-        index = 1
+        self.vocab = defaultdict()
         for token_doc in token_documents:
-            for token in token_doc:
+            for num, token in enumerate(token_doc):
                 if token not in self.vocab:
-                    self.vocab[token] = index
-                    index += 1
+                    self.vocab[token] = num
 
         self.inverse_vocab = {value: key for key, value in self.vocab.items()}
-
-        if not use_cached and vocab_cached_path:
-            cache = {"vocab": self.vocab, "inverse_vocab": self.inverse_vocab}
-            with open(vocab_cached_path, "w", encoding="utf-8") as fp:
-                json.dump(cache, fp=fp, indent=4, ensure_ascii=False)
 
         return self.vocab, self.inverse_vocab
 
@@ -67,11 +49,13 @@ class BagOfWord(OneHot):
         """
         Transform documents to embedding vectors
         Args:
+            is_pyvi:
             docs:
             less_memory:
         Returns:
             Tuple of vector embedding or DataFrame embedding
         """
+        # Embedding
         embedding = ()
         for doc in docs:
             embedding += (self.__transform_sentence(doc, is_pyvi=is_pyvi),)
@@ -82,32 +66,31 @@ class BagOfWord(OneHot):
 
     def __transform_sentence(self, sentence: str, is_pyvi=True) -> Dict:
         """
-       Transforms a single sentence into its Bag-of-Words vector representation.
+        Transforms a single sentence into its Bag-of-Words vector representation.
 
-       Args:
-           sentence (str): The sentence to be transformed.
-           is_pyvi (bool, optional): If True, uses PyVi for tokenization. Defaults to True.
+        Args:
+            sentence (str): The sentence to be transformed.
+            is_pyvi (bool, optional): If True, uses PyVi for tokenization. Defaults to True.
 
-       Returns:
-           Dict: A dictionary where keys are token indices and values are token counts
-           in the sentence.
-       """
+        Returns:
+            Dict: A dictionary where keys are token indices and values are token counts
+            in the sentence.
+        """
 
         vocab, _ = self.vocab, self.inverse_vocab
-        tokens = self.tokenizer_documents(documents=[sentence], is_pyvi=is_pyvi)
-        embedd = {}
+        tokens = self.tokenize_documents(documents=[sentence], is_pyvi=is_pyvi)
+        embedd = defaultdict()
 
         for token in tokens[0]:
             index_token = vocab.get(token)
-
+            # sep token
             if not index_token:
                 index_token = 0
-
             if index_token in embedd:
                 embedd[index_token] += 1
             else:
                 embedd[index_token] = 1
-        return embedd
+        return dict(embedd)
 
     def __format_to_matrix(self, ids: Tuple) -> pd.DataFrame:
         """
@@ -128,4 +111,3 @@ class BagOfWord(OneHot):
             data_encoder.iloc[num, list(id_.keys())] = list(id_.values())
 
         return data_encoder
-

@@ -27,3 +27,7 @@ implement lại vocab
 project: xây dựng hệ thống search sử dụng tfidf, input là crawling tên sản phẩm, mô tả sản phẩm.
 input là người dùng nhập vào. xây dựng service+UI cho user nhập sp và mô tả
 trích xuất key word, xây dựng UI cho user nhập đoc cument và link bài viết.
+
+Tạo một class thực hiện các tác vụ liên quan tới preprocessing:
+tác vụ 1: Clean text
+tác vụ 2: Tách từ
