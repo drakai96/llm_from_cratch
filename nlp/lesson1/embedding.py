@@ -1,9 +1,10 @@
 """
 This module used to embedding
 """
-from typing import List, Dict
-from collections import defaultdict
 import math
+from collections import Counter, defaultdict
+from typing import Dict, List, Tuple, Union
+import json
 
 
 class OnehotEmbedding:
@@ -54,13 +55,12 @@ class OnehotEmbedding:
             for token in tokens:
                 embed_token.append(self.vocab.get(token, 0))
             return embed_token
-        else:
-            embed_token = [0] * len(self.vocab)
-            for token in tokens:
-                encode_in_vocab = self.vocab.get(token)
-                if encode_in_vocab:
-                    embed_token[encode_in_vocab] = 1
-            return embed_token
+        embed_token = [0] * len(self.vocab)
+        for token in tokens:
+            encode_in_vocab = self.vocab.get(token)
+            if encode_in_vocab:
+                embed_token[encode_in_vocab] = 1
+        return embed_token
 
     def invert_embed_to_text(self, embed_token: List[int], reduce_memory: bool = True) -> List[str]:
         """
@@ -90,89 +90,121 @@ class TFIDF:
     A class to compute TF-IDF values for a given set of documents.
     """
 
-    def __init__(self, documents: List[List[str]]):
+    def __init__(self, max_vocab=52_000, min_idf=0):
         """
         Initializes the TFIDF instance with a list of tokenized documents.
+        """
+        self.max_vocab = max_vocab
+        self.min_idf = min_idf
+        self.idf = {"unk":0}
+        self.vocabs = {"unk":0}
+
+    @staticmethod
+    def _calculate_frequency(tokens: List[str]) -> Counter:
+        """
+        Returns: Frequency of token in sentence
+        """
+
+        return Counter(tokens)
+
+    def __calculate_idf_and_vocab(self, corpus: List[List[str,]]) -> \
+            Tuple[Dict[str, int], Dict[str, int]]:
+        """
+        Args:
+            corpus:
+        Returns:
+            Idf cached, and vocab cached, it should save in disk
+        """
+        all_tokens = []
+        for tokens in corpus:
+            all_tokens.extend(tokens)
+        counter = Counter(all_tokens)
+        counter = {key: value for key, value in counter.items() if value > self.min_idf}
+
+        # Calculate frequency of vocab
+        counter = dict(sorted(counter.items(),
+                              key=lambda item: item[1],
+                              reverse=True)[:self.max_vocab])
+        len_corpus = len(corpus)
+
+        self.idf = {key: math.log(
+            len_corpus / (value + 1))
+            for key, value in counter.items()}
+
+        # Map corpus to vocab index start from 1, equal zero if it not in corpus
+        idx = 1
+        for key in self.idf.keys():
+            if key not in self.vocabs:
+                self.vocabs[key] = idx
+                idx += 1
+        return self.idf, self.vocabs
+
+    def fit(self, corpus: List[List[str]]):
+        """
+        Fit corpus
+        Args:
+            corpus: All documents in library
+
+        Returns:
+            idf cached of all corpus
+        """
+
+        return self.__calculate_idf_and_vocab(corpus=corpus)
+
+    def fit_transform(self, tokens: List[str,]) -> List[float,]:
+        """
+        Transform a sentence to vector tfidf embedding
+        Args:
+            tokens: Token input
+        """
+
+        freq_tokens = self._calculate_frequency(tokens)
+
+        vector_embed: list = [0] * (len(self.vocabs))
+        len_sentence = len(tokens)
+        for token in freq_tokens:
+            id_vocab = self.vocabs.get(token, 0)
+            tf = freq_tokens[token] / len_sentence
+            idf = self.idf.get(token)
+            vector_embed[id_vocab] = tf * idf
+        return vector_embed
+
+    def get_feature_name_out(self):
+        """
+        All token map in tfidf, it should use for columns with pandas vector
+        """
+        return list(self.vocabs.keys())
+
+    @staticmethod
+    def save_idf(idf, vocab, path: str = "tfidf_info.json") -> None:
+        """
 
         Args:
-            documents (List[List[str]]): A list of tokenized documents.
+            idf: idf cached dictionary was calculated by fit method
+            vocab: vocab cached dictionary was calculated by fit method
+            path: path need to save
         """
-        self.documents: List[List[str]] = documents
-        self.tf: List[Dict[str, float]] = []
-        self.idf: Dict[str, float] = {}
-        self.tfidf: List[Dict[str, float]] = []
+        tf_idf_info = {"idf": idf, "vocab": vocab}
+        with open(path, "w", encoding="utf-8") as fp:
+            json.dump(tf_idf_info, fp=fp, indent=4, ensure_ascii=False)
 
-        self._calculate_tf()
-        self._calculate_idf()
-        self._calculate_tfidf()
+    def load_tfidf_model(self, path_to_load: str = "tfidf_info.json") \
+            -> Union[None, Tuple[dict, dict]]:
+        """
+        Load tfidf information, include idf and vocab of all corpus
+        Args:
+            path_to_load: path of tfidf vocab and if information
+        Return:
+            Load tfidf information, include idf and vocab of all corpus
+        """
+        if path_to_load.endswith(".json"):
+            with open(path_to_load, "r", encoding="utf-8") as fp:
 
-    def _calculate_tf(self):
-        """Calculate term frequency for each document."""
-        for doc in self.documents:
-            words = doc
-            term_count = defaultdict(int)
-            for word in words:
-                term_count[word] += 1
-            # Normalize term frequency
-            total_terms = len(words)
-            self.tf.append({word: count / total_terms for word, count in term_count.items()})
-
-    def _calculate_idf(self):
-        """Calculate inverse document frequency for each term."""
-        total_documents = len(self.documents)
-        df = defaultdict(int)  # Document frequency for each term
-
-        for tf_dict in self.tf:
-            for term in tf_dict.keys():
-                df[term] += 1
-
-        for term, count in df.items():
-            self.idf[term] = math.log(total_documents / count)
-
-    def _calculate_tfidf(self):
-        """Calculate TF-IDF for each document."""
-        for tf_dict in self.tf:
-            tfidf_dict = {term: tf * self.idf[term] for term, tf in tf_dict.items()}
-            self.tfidf.append(tfidf_dict)
-
-    def get_tfidf(self) -> List[Dict[str, float]]:
-        """Return the TF-IDF values for all documents."""
-        return self.tfidf
-
-
-# Example usage
-if __name__ == "__main__":
-    documents_ = [
-        ["Nguyen", "Van", "Nham"],
-        ["Nham", "Van", "Nguyen"],
-        ["Nguyen", "Quoc", "Hung", "me", "gai"],
-    ]
-
-    tfidf = TFIDF(documents_)
-    result = tfidf.get_tfidf()
-
-    for idx_, doc_tfidf in enumerate(result):
-        print(f"Document {idx_ + 1}: {doc_tfidf}")
-
-    documents_ = [
-        ["Nguyen", "Van", "Nham"],
-        ["Nham", "Van", "Nguyen"],
-        ["Nguyen", "Quoc", "Hung", "me", "gai"],
-    ]
-
-    # Initialize OnehotEmbedding
-    onehot = OnehotEmbedding()
-
-    # Fit the model to the corpus
-    vocab, invert_vocab = onehot.fit(documents_)
-    print("Vocabulary:", vocab)
-    print("Inverted Vocabulary:", invert_vocab)
-
-    # Transform text to embeddings
-    tokens_ = ["the", "cat", "sat"]
-    embeddings = onehot.transform_text_to_embed(tokens_, reduce_memory=True)
-    print("Embeddings for tokens", tokens_, ":", embeddings)
-
-    # Invert embeddings back to text
-    inverted_tokens = onehot.invert_embed_to_text(embeddings, reduce_memory=True)
-    print("Inverted tokens from embeddings:", inverted_tokens)
+                info = json.load(fp)
+                idf = info.get("idf")
+                vocabs = info.get("vocabs")
+                if idf and vocabs:
+                    self.idf = idf
+                    self.vocabs = vocabs
+                    return self.idf, self.vocabs
+                raise FileExistsError("File not has information of tfidf")

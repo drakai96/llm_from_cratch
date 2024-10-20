@@ -13,7 +13,7 @@ def clean_text(
         input_text,
         lower: bool = True,
         white_space: bool = True,
-        special_character=r"[#$%^&@.]",
+        special_character=r"[#$%^&@.,:\"]",
 ) -> str:
     """
     This module use to clean text
