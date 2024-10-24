@@ -5,7 +5,7 @@ This module used to clean text or tokenize the sentence to word(tokens)
 import re
 from enum import Enum
 from pyvi import ViTokenizer
-from typing import List, Literal
+from typing import List
 from underthesea import word_tokenize
 
 
@@ -66,13 +66,13 @@ def tokenize_text(
         ValueError: If the token_method is not one of the specified methods.
 
     Examples:
-        >>> tokenize_text("Xin chào, tôi tên là Hoa.", "pyvi")
+        >>> tokenize_text("Xin chào, tôi tên là Hoa.", TokenizerMethod.PYVY)
         ['Xin', 'chào', ',', 'tôi', 'tên', 'là', 'Hoa', '.']
 
-        >>> tokenize_text("Xin chào, tôi tên là Hoa.", "underthesea")
+        >>> tokenize_text("Xin chào, tôi tên là Hoa.", TokenizerMethod.UNDERTHESEA)
         ['Xin', 'chào', ',', 'tôi', 'tên', 'là', 'ChatGPT', '.']
 
-        >>> tokenize_text("Hello world!", "split")
+        >>> tokenize_text("Hello world!", TokenizerMethod.SPLIT)
         ['Hello', 'world!']
     """
     # Tokenize text with pyvi library
@@ -82,10 +82,10 @@ def tokenize_text(
         tokens = tokens.split()
         print("tokens: ", tokens)
     # Tokenize text with underthesea library
-    if token_method == TokenizerMethod.UNDERTHESEA:
+    elif token_method == TokenizerMethod.UNDERTHESEA:
         tokens = word_tokenize(input_text)
     # Tokenize text with split builtin method
-    if token_method == TokenizerMethod.SPLIT:
+    elif token_method == TokenizerMethod.SPLIT:
         tokens = input_text.split()
     else:
         raise ValueError('Method must be "pyvi", "underthesea", "split"')

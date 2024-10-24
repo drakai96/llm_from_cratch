@@ -2,8 +2,7 @@ import pandas as pd
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from embedding import TFIDF
-from utils import make_db, find_importance_word, search, pd_document_to_db
+from utils import make_db, find_importance_word, search
 
 app = FastAPI()
 
