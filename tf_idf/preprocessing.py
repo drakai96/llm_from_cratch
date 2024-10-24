@@ -1,41 +1,38 @@
 """
 This module used to clean text or tokenize the sentence to word(tokens)
 """
-
+from dataclasses import dataclass
 import re
-from enum import Enum
 from pyvi import ViTokenizer
 from typing import List
 from underthesea import word_tokenize
 
 
-class TokenizerMethod(Enum):
-    PYVY = "pyvi"
+@dataclass
+class TokenizerMethod:
+    PYVI = "pyvi"
     UNDERTHESEA = "underthesea"
-    SPLIT = "split"
+    WHITESPACE = "whitespace"
 
 
 def clean_text(
-        input_text,
-        lower: bool = False,
-        white_space: bool = True,
+        text,
+        lowercase: bool = False,
         special_character=r"[#$%^&@.,:\"]",
 ) -> str:
     """
     This module use to clean text
     Args:
-        input_text: Text need to clean
-        lower:
-        white_space:
+        text: Text need to clean
+        lowercase:
         special_character:
 
     Returns:
 
     """
-    if white_space:
-        input_text = re.sub(r"\s{2,}", " ", input_text)
+    input_text = re.sub(r"\s{2,}", " ", text)
 
-    if lower:
+    if lowercase:
         input_text = input_text.lower()
 
     if special_character:
@@ -44,9 +41,10 @@ def clean_text(
     return input_text.strip()
 
 
-def tokenize_text(
-        input_text, token_method: TokenizerMethod = "pyvi",
-        is_lower: bool = True
+def tokenize(
+        input_text,
+        token_method: str = TokenizerMethod.PYVI,
+        lowercase: bool = True
 ) -> List[str,]:
     """
     Tokenizing the input text into words (tokens).
@@ -58,7 +56,7 @@ def tokenize_text(
             - "pyvi": Uses the PyVi library for Vietnamese tokenization.
             - "underthesea": Uses the Underthesea library for Vietnamese tokenization.
             - "split": Uses simple string splitting based on whitespace.
-        is_lower:
+        lowercase:
     Returns:
         List[str]: A list of tokens (words) extracted from the input text.
 
@@ -66,17 +64,17 @@ def tokenize_text(
         ValueError: If the token_method is not one of the specified methods.
 
     Examples:
-        >>> tokenize_text("Xin chào, tôi tên là Hoa.", TokenizerMethod.PYVY)
+        >>> tokenize("Xin chào, tôi tên là Hoa.", TokenizerMethod.PYVI)
         ['Xin', 'chào', ',', 'tôi', 'tên', 'là', 'Hoa', '.']
 
-        >>> tokenize_text("Xin chào, tôi tên là Hoa.", TokenizerMethod.UNDERTHESEA)
+        >>> tokenize("Xin chào, tôi tên là Hoa.", TokenizerMethod.UNDERTHESEA)
         ['Xin', 'chào', ',', 'tôi', 'tên', 'là', 'ChatGPT', '.']
 
-        >>> tokenize_text("Hello world!", TokenizerMethod.SPLIT)
+        >>> tokenize("Hello world!", TokenizerMethod.WHITESPACE)
         ['Hello', 'world!']
     """
     # Tokenize text with pyvi library
-    if token_method == TokenizerMethod.PYVY:
+    if token_method == TokenizerMethod.PYVI:
         print("input_text: ", input_text)
         tokens = ViTokenizer.tokenize(input_text)
         tokens = tokens.split()
@@ -85,12 +83,12 @@ def tokenize_text(
     elif token_method == TokenizerMethod.UNDERTHESEA:
         tokens = word_tokenize(input_text)
     # Tokenize text with split builtin method
-    elif token_method == TokenizerMethod.SPLIT:
+    elif token_method == TokenizerMethod.WHITESPACE:
         tokens = input_text.split()
     else:
-        raise ValueError('Method must be "pyvi", "underthesea", "split"')
+        raise ValueError('Method must be "pyvi", "underthesea", "whitespace"')
 
     # Lower all token in tokens
-    if is_lower:
+    if lowercase:
         tokens = [token.lower() for token in tokens]
     return tokens
