@@ -1,10 +1,12 @@
 """
 This module used to clean text or tokenize the sentence to word(tokens)
 """
-from dataclasses import dataclass
+
 import re
-from pyvi import ViTokenizer
+from dataclasses import dataclass
 from typing import List
+
+from pyvi import ViTokenizer
 from underthesea import word_tokenize
 
 
@@ -16,9 +18,9 @@ class TokenizerMethod:
 
 
 def clean_text(
-        text,
-        lowercase: bool = False,
-        special_character=r"[#$%^&@.,:\"]",
+    text,
+    lowercase: bool = False,
+    special_character=r"[#$%^&@.,:\"]",
 ) -> str:
     """
     This module use to clean text
@@ -42,9 +44,7 @@ def clean_text(
 
 
 def tokenize(
-        input_text,
-        token_method: str = TokenizerMethod.PYVI,
-        lowercase: bool = True
+    input_text, token_method: str = TokenizerMethod.PYVI, lowercase: bool = True
 ) -> List[str,]:
     """
     Tokenizing the input text into words (tokens).
