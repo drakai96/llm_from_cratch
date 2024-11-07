@@ -1,6 +1,7 @@
 """
 This module used to clean text or tokenize the sentence to word(tokens)
 """
+
 import re
 from dataclasses import dataclass
 from typing import List, Iterable, Literal
@@ -27,14 +28,13 @@ class StopwordLanguage:
 
 stopword_language = Literal["vi", "eng", None]
 
-stopword_mapping_file = {"vi": "tf_idf/dataset/vietnamese-stopwords.txt",
-                         "eng": ...}
+stopword_mapping_file = {"vi": "tf_idf/dataset/vietnamese-stopwords.txt", "eng": ...}
 
 
 def clean_text(
-        text,
-        lowercase: bool = False,
-        special_character=r"[#$%^&@.,:\"\'\(\)]",
+    text,
+    lowercase: bool = False,
+    special_character=r"[#$%^&@.,:\"\'\(\)]",
 ) -> str:
     """
     Cleaning text
@@ -58,9 +58,7 @@ def clean_text(
 
 
 def tokenize(
-        input_text,
-        token_method: str = TokenizerMethod.PYVI,
-        lowercase: bool = True
+    input_text, token_method: str = TokenizerMethod.PYVI, lowercase: bool = True
 ) -> List[str,]:
     """
     Tokenizing the input text into words (tokens).
@@ -139,11 +137,13 @@ def remove_stopwords(tokens, lang: stopword_language = "vi") -> List[str]:
     return tokens_remove_stopword
 
 
-def preprocess_tokens(documents: Iterable[str,],
-                      method: str = TokenizerMethod.UNDERTHESEA,
-                      lowercase: bool = False,
-                      special_character: str = r"[?!#$%^&@.,:\"]",
-                      stopword: stopword_language = None) -> List[List[str,]]:
+def preprocess_tokens(
+    documents: Iterable[str,],
+    method: str = TokenizerMethod.UNDERTHESEA,
+    lowercase: bool = False,
+    special_character: str = r"[?!#$%^&@.,:\"]",
+    stopword: stopword_language = None,
+) -> List[List[str,]]:
     """
     Clean and tokenize iterable of documents into matrix of tokens
     Args:
@@ -176,13 +176,11 @@ def preprocess_tokens(documents: Iterable[str,],
     matrix_tokens = []
     for doc in documents:
         # Clean text
-        doc_cleaning = clean_text(doc,
-                                  lowercase=False,
-                                  special_character=special_character)
+        doc_cleaning = clean_text(
+            doc, lowercase=False, special_character=special_character
+        )
         # Tokenizing text
-        tokens = tokenize(doc_cleaning,
-                          lowercase=lowercase,
-                          token_method=method)
+        tokens = tokenize(doc_cleaning, lowercase=lowercase, token_method=method)
 
         # Remove stopwords
         tokens = remove_stopwords(tokens=tokens, lang=stopword)
@@ -193,7 +191,7 @@ def preprocess_tokens(documents: Iterable[str,],
 if __name__ == "__main__":
     documents_ = [
         "Xin chào tôi là Quốc Hưng mê gái",
-        "Tôi là Nhậm, hãy đưa tiền cho tôi"
+        "Tôi là Nhậm, hãy đưa tiền cho tôi",
     ]
 
     ax = preprocess_tokens(documents=documents_, stopword="vi", lowercase=True)

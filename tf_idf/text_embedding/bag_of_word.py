@@ -42,20 +42,21 @@ class CountVectorizer:
         dtype:
     """
 
-    def __init__(self,
-                 *,
-                 input="content",
-                 # strip_accents=None,
-                 lowercase=True,
-                 # preprocessor=None,
-                 tokenizer_method: TOKEN_METHOD = "underthesea",
-                 stop_words: stopword_language = None,
-                 max_df=None,
-                 min_df=None,
-                 max_features=None,
-                 vocabulary=None,
-                 dtype=np.int64
-                 ):
+    def __init__(
+        self,
+        *,
+        input="content",
+        # strip_accents=None,
+        lowercase=True,
+        # preprocessor=None,
+        tokenizer_method: TOKEN_METHOD = "underthesea",
+        stop_words: stopword_language = None,
+        max_df=None,
+        min_df=None,
+        max_features=None,
+        vocabulary=None,
+        dtype=np.int64
+    ):
         """
         Init
 
@@ -82,13 +83,17 @@ class CountVectorizer:
         self._validate_vocabulary()
 
         # calculate matrix tokens and creat vocabulary if it isn't exist
-        _, x = self._count_vocabs(raw_documents=raw_documents, fix_vocab=self._check_vocabulary)
+        _, x = self._count_vocabs(
+            raw_documents=raw_documents, fix_vocab=self._check_vocabulary
+        )
 
-        x = self._limit_feature(matrix=x,
-                                vocabulary=self.vocabulary_,
-                                high=self.max_df,
-                                low=self.min_df,
-                                limit=self.max_features)
+        x = self._limit_feature(
+            matrix=x,
+            vocabulary=self.vocabulary_,
+            high=self.max_df,
+            low=self.min_df,
+            limit=self.max_features,
+        )
         return x
 
     def transform(self, raw_documents):
@@ -145,7 +150,9 @@ class CountVectorizer:
 
         self.vocabulary_ = vocabulary
         self._check_vocabulary = True
-        self.invert_vocabulary_ = {value: key for key, value in self.vocabulary_.items()}
+        self.invert_vocabulary_ = {
+            value: key for key, value in self.vocabulary_.items()
+        }
 
         # Build matrix tokens
         x = []
@@ -168,10 +175,12 @@ class CountVectorizer:
         Returns:
 
         """
-        matrix_tokens = preprocess_tokens(documents=raw_documents,
-                                          method=self.tokenizer_method,
-                                          lowercase=self.lowercase,
-                                          stopword=self.stop_words)
+        matrix_tokens = preprocess_tokens(
+            documents=raw_documents,
+            method=self.tokenizer_method,
+            lowercase=self.lowercase,
+            stopword=self.stop_words,
+        )
         return matrix_tokens
 
     def _limit_feature(self, matrix, vocabulary, high=None, low=None, limit=None):

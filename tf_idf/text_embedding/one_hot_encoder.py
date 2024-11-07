@@ -5,19 +5,20 @@ from tf_idf.preprocessing import TOKEN_METHOD, stopword_language
 
 
 class TextOneHotEncoder(CountVectorizer):
-    def __init__(self,
-                 *,
-                 input="content",
-                 # strip_accents=None,
-                 lowercase=True,
-                 # preprocessor=None,
-                 tokenizer_method: TOKEN_METHOD = "underthesea",
-                 stop_words: stopword_language = None,
-                 max_df=None,
-                 min_df=None,
-                 max_features=None,
-                 vocabulary=None,
-                 ):
+    def __init__(
+        self,
+        *,
+        input="content",
+        # strip_accents=None,
+        lowercase=True,
+        # preprocessor=None,
+        tokenizer_method: TOKEN_METHOD = "underthesea",
+        stop_words: stopword_language = None,
+        max_df=None,
+        min_df=None,
+        max_features=None,
+        vocabulary=None,
+    ):
         """
         Init
 
@@ -30,7 +31,7 @@ class TextOneHotEncoder(CountVectorizer):
             min_df=min_df,
             max_features=max_features,
             vocabulary=vocabulary,
-            tokenizer_method=tokenizer_method
+            tokenizer_method=tokenizer_method,
         )
         self.vocabulary_ = {}
 
@@ -61,4 +62,3 @@ class TextOneHotEncoder(CountVectorizer):
 
         x[x != 0] = 1
         return x
-
