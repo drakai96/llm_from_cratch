@@ -1,0 +1,1 @@
+gunicorn "api:app" --workers 2 --preload --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8008 --reload --timeout 600 --log-level=INFO
