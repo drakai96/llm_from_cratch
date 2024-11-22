@@ -14,7 +14,7 @@ def train():
     )
     logger.debug(f"Shape of X: {X.shape}, y: {y.shape}")
     X_train, X_eval, y_train, y_eval = train_test_split(X, y, test_size=0.2)
-
+    breakpoint()
     num_epochs = 20
     learning_rate = 0.2
     model = LinearRegression(n_features=n_features, use_bias=True)
